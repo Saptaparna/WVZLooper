@@ -294,6 +294,7 @@ public:
     bool Is4LeptonFakeValidationEvents();
     bool Is3LeptonFakeValidationEvents();
     bool Is5LeptonEvent();
+    bool Is6LeptonEvent();
     bool IsTwoOSLeptonEvent();
     bool FindZCandLeptons();
     bool FindTwoOSNominalLeptons();
@@ -313,6 +314,7 @@ public:
     bool CutHighMET(int=0);
     bool CutHighMTAR(int=0);
     bool CutLowPtZeta(int=0);
+    bool CutHighSumLepPt();
 
     bool IsChannelEMu(bool=false);
     bool IsChannelOnZ(bool=false);

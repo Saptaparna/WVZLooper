@@ -176,6 +176,12 @@ void Analysis::Loop(const char* NtupleVersion, const char* TagName, bool dosyst,
         cutflow.addCutToLastActiveCut("FiveLeptonsRelIso5th"    , [&](){ return this->Is5thNominal();            } , UNITY );
         cutflow.addCutToLastActiveCut("FiveLeptonsMT5th"        , [&](){ return this->CutHighMT();               } , UNITY );
 
+        //Common six lepton selections
+        cutflow.getCut("Weight");
+        cutflow.addCutToLastActiveCut("SixLeptons"                     , [&](){ return this->Is6LeptonEvent();          } , [&](){ return this->LeptonScaleFactor(); } );
+        cutflow.addCutToLastActiveCut("SixLeptonsSumPtCut"             , [&](){ return this->CutHighSumLepPt();         } , UNITY );
+
+
         cutflow.getCut("Weight");
         cutflow.addCutToLastActiveCut("ARFindZCandLeptons"            , [&](){ return this->FindZCandLeptons();        } , UNITY );
         cutflow.addCutToLastActiveCut("ARFindOSOneNomOneNotNomLeptons", [&](){ return this->FindOSOneNomOneNotNomLeptons(); }, UNITY );
@@ -389,6 +395,7 @@ void Analysis::Loop(const char* NtupleVersion, const char* TagName, bool dosyst,
         histograms.addHistogram("pt_zeta"        , 180 , -200    , 200       , [&](){ return this->VarPtZetaDiff(); });
         histograms.addHistogram("pt_zeta_vis"    , 180 , -200    , 550       , [&](){ return this->VarPtZetaVis(); });
         histograms.addHistogram("pt_zeta_sum"    , 180 , -200    , 550       , [&](){ return this->VarPtZeta(); });
+        histograms.addHistogram("pt_sum"    , 20  ,  0.0    , 1000           , [&](){ return this->CutHighSumLepPt(); });
     }
     else if (ntupleVersion.Contains("Trilep"))
     {
@@ -704,6 +711,8 @@ void Analysis::Loop(const char* NtupleVersion, const char* TagName, bool dosyst,
             cutflow.bookHistogramsForCutAndBelow(histograms, "ChannelBTagOnZ");
             cutflow.bookHistogramsForCutAndBelow(histograms, "ChannelBTagOffZ");
             cutflow.bookHistogramsForCutAndBelow(histograms, "FiveLeptonsRelIso5th");
+            cutflow.bookHistogramsForCutAndBelow(histograms, "SixLeptons");
+            cutflow.bookHistogramsForCutAndBelow(histograms, "SixLeptonsSumPtCut");
             cutflow.bookHistogramsForCutAndBelow(histograms, "ChannelAREMu");
             cutflow.bookHistogramsForCutAndBelow(histograms, "ChannelAROffZ");
             cutflow.bookHistogramsForCutAndBelow(histograms, "CutHLTZZ4l");
@@ -726,6 +735,8 @@ void Analysis::Loop(const char* NtupleVersion, const char* TagName, bool dosyst,
             cutflow.bookHistogramsForCut(histograms, "ChannelBTagOffZ");
             cutflow.bookHistogramsForCut(histograms, "ChannelBTagOffZHighMET");
             cutflow.bookHistogramsForCut(histograms, "FiveLeptonsMT5th");
+            cutflow.bookHistogramsForCut(histograms, "SixLeptons");
+            cutflow.bookHistogramsForCut(histograms, "SixLeptonsSumPtCut");
             histograms_Z_peak.addHistogram("MllZCandZoom" , 180 , 60 , 120 , [&](){ return this->VarMll(lep_ZCand_idx1, lep_ZCand_idx2); });
             histograms_Z_peak.addHistogram("MllNomZoom"   , 180 , 60 , 120 , [&](){ return this->VarMll(lep_Nom_idx1, lep_Nom_idx2); });
             histograms_Z_peak.addHistogram("MllZCand" , 180 , 0 , 200 , [&](){ return this->VarMll(lep_ZCand_idx1, lep_ZCand_idx2); });
@@ -2574,6 +2585,19 @@ bool Analysis::CutHighMTAR(int var)
 }
 
 //______________________________________________________________________________________________
+bool Analysis::CutHighSumLepPt()
+{
+  double sumLepPt = 0.0;
+  for(unsigned int i=0; i<wvz.lep_pt().size(); i++)
+    sumLepPt +=  wvz.lep_pt().at(i);
+ 
+  //std::cout << "sumPt = " << sumLepPt << std::endl; 
+  if(sumLepPt > 250) return true;
+  else return false; 
+
+}
+
+//______________________________________________________________________________________________
 bool Analysis::Cut4LepLeptonPt(bool isAR)
 {
     if (lep_ZCand_idx1 < 0)
@@ -2781,6 +2805,13 @@ bool Analysis::Is5LeptonEvent()
     if (not (wvz.lep_pt()[lep_5Lep_Z1_idx2] > 10)) return false;
     if (not (wvz.lep_pt()[lep_5Lep_Z2_idx1] > 25)) return false;
     if (not (wvz.lep_pt()[lep_5Lep_Z2_idx2] > 10)) return false;
+    return true;
+}
+
+bool Analysis::Is6LeptonEvent()
+{
+    if (not (nVetoLeptons >= 6)) return false;
+    if (not (CutHLT())) return false;
     return true;
 }
 
